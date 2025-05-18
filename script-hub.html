@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lyrion – Script-Hub</title>
+
+  <!-- Basic CSS (same styling as editor.html + list styles) -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 200px;
+      background-color: #0d0d0d;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    }
+    .sidebar h1 {
+      color: #ffd700;
+      margin: 0 0 30px 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .sidebar a {
+      color: #ffd700;
+      text-decoration: none;
+      margin-bottom: 15px;
+      font-size: 16px;
+      transition: color 0.3s ease;
+    }
+    .sidebar a:hover {
+      color: #ffeb3b;
+      text-decoration: underline;
+    }
+    .sidebar a.active {
+      color: #ffeb3b;
+      font-weight: 700;
+    }
+    .sidebar .user-info {
+      margin-top: auto;
+      font-size: 12px;
+      color: #fff;
+    }
+    .sidebar .user-info span {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .script-hub-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #222;
+      padding: 20px;
+      gap: 15px;
+    }
+    .script-hub-container h2 {
+      color: #ffd700;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+    .script-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 5px;
+    }
+    .script-item span {
+      flex: 1;
+      font-size: 14px;
+      color: #fff;
+    }
+    .script-item button {
+      padding: 8px 16px;
+      background-color: #ffd700;
+      border: none;
+      border-radius: 5px;
+      color: #000;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: 700;
+    }
+    .script-item button:hover {
+      background-color: #ffeb3b;
+    }
+
+    /* Mobile styles */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .sidebar h1 {
+        font-size: 20px;
+        margin: 0 10px 0 0;
+      }
+      .sidebar a {
+        font-size: 14px;
+        margin: 5px 10px;
+      }
+      .sidebar .user-info {
+        font-size: 10px;
+        margin: 5px 10px;
+        margin-left: auto;
+      }
+      .script-hub-container {
+        padding: 10px;
+      }
+      .script-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .script-item button {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Redirect to login if not logged in -->
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h1>Lyrion</h1>
+    <a href="editor.html" id="link-execution">Execution</a>
+    <a href="script-hub.html" id="link-script-hub">Script-Hub</a>
+    <a href="games.html" id="link-games">Games</a>
+    <a href="#" onclick="handleLogout()">Logout</a>
+
+    <div class="user-info">
+      <span id="user-username"></span>
+      <span id="user-plan"></span>
+      <span id="user-expires"></span>
+    </div>
+  </div>
+
+  <!-- SCRIPT-HUB CONTAINER -->
+  <div class="script-hub-container">
+    <h2>Script-Hub</h2>
+    <div id="script-list"></div>
+  </div>
+
+  <!-- SCRIPT for Script-Hub Page -->
+  <script>
+    // Populate user info in sidebar
+    document.getElementById('user-username').textContent = 'User: ' + localStorage.getItem('username');
+    document.getElementById('user-plan').textContent = 'Plan: ' + localStorage.getItem('plan');
+    document.getElementById('user-expires').textContent = 'Expires: Never';
+
+    // Highlight the “Script-Hub” link
+    document.getElementById('link-script-hub').classList.add('active');
+
+    // Logout: clear localStorage and send to login
+    function handleLogout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('plan');
+      window.location.href = 'login.html';
+    }
+
+    // Fetch and display scripts
+    (async function loadScripts() {
+      try {
+        const response = await fetch('/scripts.json');
+        if (!response.ok) throw new Error('Failed to fetch scripts');
+        const scripts = await response.json();
+
+        const scriptList = document.getElementById('script-list');
+        scriptList.innerHTML = '';
+
+        scripts.forEach(script => {
+          const item = document.createElement('div');
+          item.className = 'script-item';
+          item.innerHTML = `
+            <span>${script.name}</span>
+            <button onclick="executeScript('${script.script.replace(/'/g, "\\'")}')">Execute</button>
+          `;
+          scriptList.appendChild(item);
+        });
+      } catch (error) {
+        alert('Error fetching scripts: ' + error.message);
+      }
+    })();
+
+    // When “Execute” is clicked, send the script text to editor.html
+    function executeScript(scriptContent) {
+      // Store the chosen script in sessionStorage (so editor.html can pick it up)
+      sessionStorage.setItem('scriptToExecute', scriptContent);
+      window.location.href = 'editor.html';
+    }
+  </script>
+</body>
+</html>
