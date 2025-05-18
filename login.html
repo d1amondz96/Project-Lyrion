@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lyrion – Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-container {
+      background-color: #222;
+      padding: 20px;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .form-container h2 {
+      color: #ffd700;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background-color: #333;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .form-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ffd700;
+      border: none;
+      border-radius: 5px;
+      color: #000;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: 700;
+    }
+    .form-container button:hover {
+      background-color: #ffeb3b;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Lyrion Login</h2>
+    <input type="text" id="login-username" placeholder="Username" />
+    <input type="password" id="login-password" placeholder="Password" />
+    <button onclick="handleLogin()">Login</button>
+  </div>
+
+  <script>
+    // If the user is already “logged in”, redirect immediately to editor.html
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      window.location.href = 'editor.html';
+    }
+
+    function handleLogin() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+
+      if (!username || !password) {
+        alert('Please enter both username and password');
+        return;
+      }
+
+      // ONLY accept “thatzd9” / “test1”
+      if (username === 'thatzd9' && password === 'test1') {
+        // Mark login flag in localStorage
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', 'thatzd9');
+        localStorage.setItem('plan', 'Ultimate'); // for display in other pages
+        // Redirect to the main editor page
+        window.location.href = 'editor.html';
+      } else {
+        alert('Error: Invalid username or password');
+      }
+    }
+  </script>
+</body>
+</html>
