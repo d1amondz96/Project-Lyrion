@@ -80,6 +80,17 @@
         return;
       }
 
+  const router = createBrowserRouter([
+    {
+        path: "/",
+        element: Home(),
+    },
+    {
+        path: '/require-tools',
+        element: Test(),
+    }
+]);
+      
       // ONLY accept “thatzd9” / “test1”
       if (username === 'thatzd9' && password === 'test1') {
         // Mark login flag in localStorage
