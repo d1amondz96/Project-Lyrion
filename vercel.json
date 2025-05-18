@@ -5,7 +5,7 @@
             "dest": "/"
         },
         {
-            "src": "/require-tools",
+            "src": "/Project-Lyrion",
             "dest": "/"
         }
     ]
