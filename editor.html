@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lyrion – Editor</title>
+
+  <!-- Basic CSS (same styling as before) -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 200px;
+      background-color: #0d0d0d;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    }
+    .sidebar h1 {
+      color: #ffd700;
+      margin: 0 0 30px 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .sidebar a {
+      color: #ffd700;
+      text-decoration: none;
+      margin-bottom: 15px;
+      font-size: 16px;
+      transition: color 0.3s ease;
+    }
+    .sidebar a:hover {
+      color: #ffeb3b;
+      text-decoration: underline;
+    }
+    .sidebar a.active {
+      color: #ffeb3b;
+      font-weight: 700;
+    }
+    .sidebar .user-info {
+      margin-top: auto;
+      font-size: 12px;
+      color: #fff;
+    }
+    .sidebar .user-info span {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #222;
+      padding: 20px;
+      gap: 15px;
+    }
+    #editor {
+      flex: 1;
+      border: 1px solid #333;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .buttons button {
+      padding: 10px 20px;
+      background-color: #333;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+      font-weight: 700;
+    }
+    .buttons button:hover {
+      background-color: #ffd700;
+      color: #000;
+    }
+
+    /* Mobile styles */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .sidebar h1 {
+        font-size: 20px;
+        margin: 0 10px 0 0;
+      }
+      .sidebar a {
+        font-size: 14px;
+        margin: 5px 10px;
+      }
+      .sidebar .user-info {
+        font-size: 10px;
+        margin: 5px 10px;
+        margin-left: auto;
+      }
+      .editor-container {
+        padding: 10px;
+      }
+      #editor {
+        min-height: 50vh;
+      }
+      .buttons {
+        flex-direction: column;
+        gap: 5px;
+      }
+      .buttons button {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+      }
+    }
+  </style>
+
+  <!-- Monaco Editor scripts (required) -->
+  <script>
+    // We’ll insert Monaco Editor from CDN
+    window.require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+</head>
+
+<body>
+  <!-- Redirect to login if not logged in -->
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h1>Lyrion</h1>
+    <a href="editor.html" id="link-execution">Execution</a>
+    <a href="script-hub.html" id="link-script-hub">Script-Hub</a>
+    <a href="games.html" id="link-games">Games</a>
+    <a href="#" onclick="handleLogout()">Logout</a>
+
+    <div class="user-info">
+      <span id="user-username"></span>
+      <span id="user-plan"></span>
+      <span id="user-expires"></span>
+    </div>
+  </div>
+
+  <!-- EDITOR CONTAINER -->
+  <div class="editor-container">
+    <div id="editor" data-keybinding-context="1" data-mode-id="lua"></div>
+    <div class="buttons">
+      <button onclick="handleExecute()">Execute</button>
+      <button onclick="handleClear()">Clear</button>
+      <button onclick="handleResetCode()">Reset Code</button>
+    </div>
+  </div>
+
+  <!-- SCRIPT for Editor Page -->
+  <script>
+    // Populate user info in sidebar
+    document.getElementById('user-username').textContent = 'User: ' + localStorage.getItem('username');
+    document.getElementById('user-plan').textContent = 'Plan: ' + localStorage.getItem('plan');
+    document.getElementById('user-expires').textContent = 'Expires: Never';
+
+    // Highlight the “Execution” link
+    document.getElementById('link-execution').classList.add('active');
+
+    // Initialize Monaco Editor
+    require(['vs/editor/editor.main'], function () {
+      window.editorInstance = monaco.editor.create(document.getElementById('editor'), {
+        value: '-- Welcome to Lyrion Editor\nprint("Hello, Lyrion!")',
+        language: 'lua',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 14,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+      });
+    });
+
+    // Logout: clear localStorage and send to login
+    function handleLogout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('plan');
+      window.location.href = 'login.html';
+    }
+
+    // Execute button logic
+    async function handleExecute() {
+      const code = window.editorInstance.getValue();
+
+      try {
+        const response = await fetch('/.netlify/functions/getCode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to send code');
+        }
+        alert('Code sent to Roblox!');
+      } catch (error) {
+        alert('Error sending code: ' + error.message);
+      }
+    }
+
+    // Clear button logic
+    function handleClear() {
+      window.editorInstance.setValue('');
+    }
+
+    // Reset Code button logic
+    async function handleResetCode() {
+      try {
+        const response = await fetch('/.netlify/functions/getCode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: '' }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to reset code');
+        }
+        alert('Code reset!');
+      } catch (error) {
+        alert('Error resetting code: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
